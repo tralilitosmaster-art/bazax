@@ -34,7 +34,6 @@
             overflow-x: hidden;
         }
 
-        /* Фоновое свечение (адаптивное) */
         .glow {
             position: absolute;
             top: -10vh;
@@ -48,7 +47,6 @@
             pointer-events: none;
         }
 
-        /* Навигация */
         nav {
             display: flex;
             justify-content: space-between;
@@ -72,12 +70,11 @@
         .logo-img {
             width: 35px;
             height: 35px;
-            background: var(--accent);
             border-radius: 8px;
             box-shadow: 0 0 15px var(--accent-glow);
-            /* Если есть картинка: */
-            /* background: url('/static/logo.png') no-repeat center center; */
-            /* background-size: cover; */
+            background: url('/static/logo.png') no-repeat center center;
+            background-size: cover;
+            background-color: var(--accent);
         }
 
         .logo-text {
@@ -88,13 +85,18 @@
 
         .logo-text span { color: var(--accent); }
 
-        /* Мобильное меню */
         .menu-toggle {
             display: none;
             font-size: 2rem;
             color: var(--text);
             cursor: pointer;
             user-select: none;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
         }
 
         .nav-tabs {
@@ -123,7 +125,24 @@
             text-shadow: 0 0 10px var(--accent-glow);
         }
 
-        /* Контент */
+        .lang-switch {
+            display: flex;
+            gap: 10px;
+            font-weight: 900;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .lang-switch span {
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .lang-switch span.active {
+            color: var(--accent);
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+
         .content {
             flex: 1;
             display: flex;
@@ -149,12 +168,10 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Вкладка: Скачать */
         .hero {
             text-align: center;
         }
 
-        /* Fluid Typography - текст подстраивается под экран */
         .hero h1 {
             font-size: clamp(2.5rem, 6vw, 4.5rem);
             font-weight: 900;
@@ -201,7 +218,6 @@
             box-shadow: 0 8px 30px var(--accent-glow);
         }
 
-        /* Вкладка: Дашборд */
         .dashboard-box {
             background: var(--panel);
             border: 1px solid var(--border);
@@ -237,7 +253,6 @@
             box-shadow: 0 8px 30px rgba(88, 101, 242, 0.6);
         }
 
-        /* Вкладка: О BazaX (Сетка) */
         .about-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
@@ -270,7 +285,6 @@
             line-height: 1.5;
         }
 
-        /* Футер */
         footer {
             text-align: center;
             padding: 2rem;
@@ -280,20 +294,10 @@
             margin-top: auto;
         }
 
-        /* =========================================
-           МЕДИА-ЗАПРОСЫ (Адаптация под телефоны)
-           ========================================= */
         @media (max-width: 768px) {
-            nav {
-                padding: 1rem 5vw;
-            }
-
-            .menu-toggle {
-                display: block;
-            }
-
-            .nav-tabs {
-                display: none; /* Скрываем обычное меню */
+            nav { padding: 1rem 5vw; }
+            .menu-toggle { display: block; }
+            .nav-right {
                 position: absolute;
                 top: 100%;
                 left: 0;
@@ -302,33 +306,31 @@
                 flex-direction: column;
                 padding: 1rem;
                 border-bottom: 1px solid var(--border);
+                display: none;
                 gap: 1rem;
             }
-
-            .nav-tabs.open {
-                display: flex; /* Показываем при клике */
+            .nav-right.open { display: flex; }
+            .nav-tabs {
+                flex-direction: column;
+                width: 100%;
+                gap: 0;
             }
-
             .nav-tab {
                 padding: 1rem;
                 text-align: center;
                 border-bottom: none;
             }
-
             .nav-tab.active {
                 background: var(--panel-hover);
                 border-radius: 8px;
-                border-bottom: none;
                 color: var(--accent);
             }
-
-            .dashboard-box {
-                padding: 3rem 1.5rem;
+            .lang-switch {
+                justify-content: center;
+                padding-bottom: 1rem;
             }
-            
-            .content {
-                padding: 2rem 5vw;
-            }
+            .dashboard-box { padding: 3rem 1.5rem; }
+            .content { padding: 2rem 5vw; }
         }
     </style>
 </head>
@@ -341,13 +343,18 @@
             <div class="logo-text">Baza<span>X</span></div>
         </div>
         
-        <!-- Бургер-меню для телефонов -->
         <div class="menu-toggle" onclick="toggleMenu()">☰</div>
 
-        <div class="nav-tabs" id="navTabs">
-            <div class="nav-tab active" onclick="switchTab('download', this)">Скачать</div>
-            <div class="nav-tab" onclick="switchTab('dashboard', this)">Дашборд</div>
-            <div class="nav-tab" onclick="switchTab('about', this)">О BazaX</div>
+        <div class="nav-right" id="navRight">
+            <div class="nav-tabs">
+                <div class="nav-tab active" onclick="switchTab('download', this)" data-i18n="nav_download">Скачать</div>
+                <div class="nav-tab" onclick="switchTab('dashboard', this)" data-i18n="nav_dashboard">Дашборд</div>
+                <div class="nav-tab" onclick="switchTab('about', this)" data-i18n="nav_about">О BazaX</div>
+            </div>
+            <div class="lang-switch">
+                <span class="active" onclick="setLang('ru', this)">RU</span>
+                <span onclick="setLang('en', this)">EN</span>
+            </div>
         </div>
     </nav>
 
@@ -355,11 +362,11 @@
         <!-- СТРАНИЦА: СКАЧАТЬ -->
         <div id="page-download" class="page active">
             <div class="hero">
-                <h1>Baza<span>X</span> Executor</h1>
-                <p>Самый продвинутый внутренний исполнитель Luau с обходом Hyperion (Byfron). Основан на чистом C++ и современных технологиях.</p>
+                <h1 data-i18n="hero_title">BazaX Executor</h1>
+                <p data-i18n="hero_desc">Самый продвинутый внутренний исполнитель Luau с обходом Hyperion (Byfron). Основан на чистом C++ и современных технологиях.</p>
                 <a href="/static/BazaX.zip" class="btn">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    Скачать BazaX
+                    <span data-i18n="btn_download">Скачать BazaX</span>
                 </a>
             </div>
         </div>
@@ -367,11 +374,11 @@
         <!-- СТРАНИЦА: ДАШБОРД -->
         <div id="page-dashboard" class="page">
             <div class="dashboard-box">
-                <h2>Личный Кабинет</h2>
-                <p>Авторизуйся через Discord, чтобы получить свой ключ доступа, отслеживать лимиты облака и привязанные устройства.</p>
+                <h2 data-i18n="dash_title">Личный Кабинет</h2>
+                <p data-i18n="dash_desc">Авторизуйся через Discord, чтобы получить свой ключ доступа, отслеживать лимиты облака и привязанные устройства.</p>
                 <a href="/login" class="btn btn-discord">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
-                    Login with Discord
+                    <span data-i18n="btn_login">Login with Discord</span>
                 </a>
             </div>
         </div>
@@ -380,20 +387,20 @@
         <div id="page-about" class="page">
             <div class="about-grid">
                 <div class="feature-card">
-                    <h3>Undetected</h3>
-                    <p>Используем Manual Mapping и RtlCreateUserThread для обхода защиты Hyperion (Byfron). Твой аккаунт в безопасности.</p>
+                    <h3 data-i18n="feat1_t">Undetected</h3>
+                    <p data-i18n="feat1_d">Используем Manual Mapping и RtlCreateUserThread для обхода защиты Hyperion (Byfron). Твой аккаунт в безопасности.</p>
                 </div>
                 <div class="feature-card">
-                    <h3>Luau Bridge</h3>
-                    <p>Прямой перехват функции lua_resume. Мгновенное выполнение скриптов без лагов и крашей.</p>
+                    <h3 data-i18n="feat2_t">Luau Bridge</h3>
+                    <p data-i18n="feat2_d">Прямой перехват функции lua_resume. Мгновенное выполнение скриптов без лагов и крашей.</p>
                 </div>
                 <div class="feature-card">
-                    <h3>Cloud Storage</h3>
-                    <p>Твои скрипты и конфиги сохраняются в облаке. Забудь про вечное копирование файлов туда-сюда.</p>
+                    <h3 data-i18n="feat3_t">Cloud Storage</h3>
+                    <p data-i18n="feat3_d">Твои скрипты и конфиги сохраняются в облаке. Забудь про вечное копирование файлов туда-сюда.</p>
                 </div>
                 <div class="feature-card">
-                    <h3>Discord Auth</h3>
-                    <p>Полная интеграция с Discord. Получай ключ, смотри план и привязывай устройства прямо в нашем боте.</p>
+                    <h3 data-i18n="feat4_t">Discord Auth</h3>
+                    <p data-i18n="feat4_d">Полная интеграция с Discord. Получай ключ, смотри план и привязывай устройства прямо в нашем боте.</p>
                 </div>
             </div>
         </div>
@@ -404,37 +411,82 @@
     </footer>
 
     <script>
-        // Переключение вкладок
-        function switchTab(tabId, element) {
-            // Скрываем все страницы
-            document.querySelectorAll('.page').forEach(page => {
-                page.classList.remove('active');
-            });
-            // Убираем активный класс со всех вкладок
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
+        // --- СЛОВАРИ ПЕРЕВОДОВ ---
+        const translations = {
+            ru: {
+                nav_download: "Скачать",
+                nav_dashboard: "Дашборд",
+                nav_about: "О BazaX",
+                hero_title: "BazaX Executor",
+                hero_desc: "Самый продвинутый внутренний исполнитель Luau с обходом Hyperion (Byfron). Основан на чистом C++ и современных технологиях.",
+                btn_download: "Скачать BazaX",
+                dash_title: "Личный Кабинет",
+                dash_desc: "Авторизуйся через Discord, чтобы получить свой ключ доступа, отслеживать лимиты облака и привязанные устройства.",
+                btn_login: "Login with Discord",
+                feat1_t: "Undetected",
+                feat1_d: "Используем Manual Mapping и RtlCreateUserThread для обхода защиты Hyperion (Byfron). Твой аккаунт в безопасности.",
+                feat2_t: "Luau Bridge",
+                feat2_d: "Прямой перехват функции lua_resume. Мгновенное выполнение скриптов без лагов и крашей.",
+                feat3_t: "Cloud Storage",
+                feat3_d: "Твои скрипты и конфиги сохраняются в облаке. Забудь про вечное копирование файлов туда-сюда.",
+                feat4_t: "Discord Auth",
+                feat4_d: "Полная интеграция с Discord. Получай ключ, смотри план и привязывай устройства прямо в нашем боте."
+            },
+            en: {
+                nav_download: "Download",
+                nav_dashboard: "Dashboard",
+                nav_about: "About",
+                hero_title: "BazaX Executor",
+                hero_desc: "The most advanced internal Luau executor with Hyperion (Byfron) bypass. Built on pure C++ and modern tech.",
+                btn_download: "Download BazaX",
+                dash_title: "Dashboard",
+                dash_desc: "Login with Discord to get your access key, track cloud limits, and manage connected devices.",
+                btn_login: "Login with Discord",
+                feat1_t: "Undetected",
+                feat1_d: "Using Manual Mapping and RtlCreateUserThread to bypass Hyperion. Your account stays safe.",
+                feat2_t: "Luau Bridge",
+                feat2_d: "Direct hooking of lua_resume. Instant execution without lag or crashes.",
+                feat3_t: "Cloud Storage",
+                feat3_d: "Your scripts and configs are saved in the cloud. Forget copying files back and forth.",
+                feat4_t: "Discord Auth",
+                feat4_d: "Full Discord integration. Get keys, check plans, and link devices right in our bot."
+            }
+        };
 
-            // Показываем нужную страницу
+        let currentLang = 'ru';
+
+        function setLang(lang, el) {
+            currentLang = lang;
+            // Меняем активный класс у кнопок
+            document.querySelectorAll('.lang-switch span').forEach(s => s.classList.remove('active'));
+            el.classList.add('active');
+
+            // Переводим все элементы с data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(elem => {
+                const key = elem.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    elem.innerText = translations[lang][key];
+                }
+            });
+        }
+
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
             document.getElementById(`page-${tabId}`).classList.add('active');
             
-            // Подсвечиваем нужную вкладку
             if (element) {
                 element.classList.add('active');
             } else {
-                // Если кликнули по логотипу, подсвечиваем первую вкладку
                 document.querySelector('.nav-tab').classList.add('active');
             }
-            
-            // Закрываем мобильное меню после клика
-            document.getElementById('navTabs').classList.remove('open');
+            document.getElementById('navRight').classList.remove('open');
         }
 
-        // Открытие/закрытие мобильного меню
         function toggleMenu() {
-            const tabs = document.getElementById('navTabs');
-            tabs.classList.toggle('open');
+            document.getElementById('navRight').classList.toggle('open');
         }
     </script>
 </body>
-  </html>
+</html>
+
