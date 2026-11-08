@@ -176,23 +176,26 @@ class AccountView(View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    # Кнопка-ссылка на сайт (замени URL на свой, когда узнаешь его на Render)
-    @discord.ui.button(label="Login / Create", style=discord.ButtonStyle.link, url="https://bazax-manage.onrender.com/login", row=0)
+    # Исправленная кнопка (без аргумента url)
+    @discord.ui.button(label="Login / Create", style=discord.ButtonStyle.success, custom_id="btn_login")
     async def btn_login(self, interaction: discord.Interaction, button: Button):
-        pass
+        await interaction.response.send_message(
+            "🔗 **Авторизация BazaX**\nНажми на ссылку ниже, чтобы войти через Discord и получить ключ:\n\nhttps://bazax-manage.onrender.com/login", 
+            ephemeral=True
+        )
 
-    @discord.ui.button(label="Your Plan", style=discord.ButtonStyle.secondary, custom_id="btn_plan", row=1)
+    @discord.ui.button(label="Your Plan", style=discord.ButtonStyle.secondary, custom_id="btn_plan")
     async def btn_plan(self, interaction: discord.Interaction, button: Button):
         user = get_user(interaction.user.id)
         if not user:
-            await interaction.response.send_message("❌ Сначала авторизуйся через кнопку выше.", ephemeral=True)
+            await interaction.response.send_message("❌ Сначала авторизуйся через кнопку `Login / Create`.", ephemeral=True)
             return
         plan = user[0]
         desc = "5 MB Cloud\nInternal\n❌ Beta" if plan == "FREE" else "100 MB Cloud\nInternal\n✅ Beta"
         embed = discord.Embed(title=f"💎 Plan: {plan}", description=desc, color=0x5865F2)
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    @discord.ui.button(label="Delete Account", style=discord.ButtonStyle.danger, custom_id="btn_delete", row=1)
+    @discord.ui.button(label="Delete Account", style=discord.ButtonStyle.danger, custom_id="btn_delete")
     async def btn_delete(self, interaction: discord.Interaction, button: Button):
         user = get_user(interaction.user.id)
         if not user:
@@ -212,6 +215,7 @@ async def on_ready():
 
         embed = discord.Embed(title="**ACCOUNT**", description="Your system is already open here! Where do we start?", color=0x2b2d31)
         await channel.send(embed=embed, view=AccountView())
+        print(f"[+] Сообщение с кнопками отправлено в канал {channel.name}")
 
 # ==========================================
 # ЗАПУСК
