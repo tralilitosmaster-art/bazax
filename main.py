@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ==========================================
-# НАСТРОЙКИ (Берутся из Render Environment)
+# НАСТРОЙКИ
 # ==========================================
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 CHANNEL_ID = int(os.getenv("ACCOUNT_CHANNEL_ID", 0))
@@ -23,21 +23,34 @@ CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 REDIRECT_URI = os.getenv("REDIRECT_URI")
 VERIFIED_ROLE_ID = int(os.getenv("VERIFIED_ROLE_ID", 0))
 
-# Путь к базе (если есть диск /data, используем его для сохранения)
+# Путь к базе (если есть диск /data, используем его)
 DB_PATH = "/data/bazax_users.db" if os.path.exists("/data") else "bazax_users.db"
 
 # ==========================================
-# FLASK СЕРВЕР (САЙТ + API)
+# FLASK СЕРВЕР
 # ==========================================
 app = Flask(__name__)
 
 @app.route('/')
-def health():
+def index():
     try:
         return render_template('index.html')
-    except:
-        return "BazaX API is alive (index.html not found)", 200
+    except Exception:
+        return "BazaX API is alive. (index.html not found)", 200
 
+@app.route('/dashboard')
+def dashboard():
+    try:
+        return render_template('dashboard.html')
+    except Exception:
+        return "Dashboard not found (dashboard.html missing)", 404
+
+@app.route('/logout')
+def logout():
+    # JS на странице дашборда сам очистит localStorage при переходе по этой ссылке
+    return redirect('/')
+
+# --- OAUTH2 АВТОРИЗАЦИЯ ---
 @app.route('/login')
 def login():
     url = f"https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&response_type=code&scope=identify%20guilds.join"
@@ -68,38 +81,53 @@ def callback():
     user_data = user_resp.json()
     user_id = user_data['id']
     username = user_data['username']
+    avatar_hash = user_data.get('avatar')
 
+    # Проверяем, есть ли аккаунт в БД
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT key FROM users WHERE discord_id = ?", (user_id,))
+    c.execute("SELECT plan, key FROM users WHERE discord_id = ?", (user_id,))
     row = c.fetchone()
 
     if row:
-        key = row[0]
+        plan, key = row
     else:
+        plan = "FREE"
         key = "BAZAX-" + hashlib.md5(f"{user_id}-{time.time()}".encode()).hexdigest()[:16].upper()
-        c.execute("INSERT INTO users VALUES (?, ?, ?, ?, ?)", (user_id, "FREE", key, 5, ""))
+        c.execute("INSERT INTO users VALUES (?, ?, ?, ?, ?)", (user_id, plan, key, 5, ""))
         c.execute("INSERT INTO key_history VALUES (?, ?, ?)", (key, user_id, int(time.time())))
         conn.commit()
     conn.close()
 
+    # Выдаем роль на сервере
     if GUILD_ID and VERIFIED_ROLE_ID:
         bot_headers = {"Authorization": f"Bot {TOKEN}", "Content-Type": "application/json"}
         requests.put(f"https://discord.com/api/guilds/{GUILD_ID}/members/{user_id}/roles/{VERIFIED_ROLE_ID}", headers=bot_headers)
 
+    # Ссылка на аватарку
+    avatar_url = f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_hash}.png" if avatar_hash else "https://cdn.discordapp.com/embed/avatars/0.png"
+
+    # HTML-перенаправление с сохранением данных в localStorage
     return f"""
     <html>
-        <head><meta charset="UTF-8"><title>BazaX Auth</title></head>
-        <body style="background: #09090b; color: white; font-family: sans-serif; text-align: center; padding-top: 50px;">
-            <h1 style="color: #e6192a;">✅ Успешный вход!</h1>
-            <p>Привет, <b>{username}</b>!</p>
-            <p>Твой ключ: <code style="background: #151520; padding: 10px; border-radius: 8px; color: #fff;">{key}</code></p>
-            <p>Роль на сервере выдана. Можешь закрыть эту вкладку.</p>
-            <a href="/" style="color: #e6192a; text-decoration: none; margin-top: 20px; display: inline-block;">← Вернуться на сайт</a>
+        <head><meta charset="UTF-8"><title>Redirecting...</title></head>
+        <body style="background: #09090b; color: white; text-align: center; padding-top: 50px; font-family: sans-serif;">
+            <h2 style="color: #e6192a;">Авторизация успешна!</h2>
+            <p>Перенаправляем в личный кабинет...</p>
+            <script>
+                localStorage.setItem('bazax_user', JSON.stringify({{
+                    username: "{username}",
+                    avatar: "{avatar_url}",
+                    key: "{key}",
+                    plan: "{plan}"
+                }}));
+                window.location.href = "/dashboard";
+            </script>
         </body>
     </html>
     """
 
+# --- API ДЛЯ ИНЖЕКТОРА ---
 @app.route('/api/get_info', methods=['GET'])
 def get_info():
     key = request.args.get('key')
@@ -176,9 +204,9 @@ class AccountView(View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    # Исправленная кнопка (без аргумента url)
     @discord.ui.button(label="Login / Create", style=discord.ButtonStyle.success, custom_id="btn_login")
     async def btn_login(self, interaction: discord.Interaction, button: Button):
+        # ВАЖНО: Замени ссылку на свой реальный домен на Render
         await interaction.response.send_message(
             "🔗 **Авторизация BazaX**\nНажми на ссылку ниже, чтобы войти через Discord и получить ключ:\n\nhttps://bazax-manage.onrender.com/login", 
             ephemeral=True
