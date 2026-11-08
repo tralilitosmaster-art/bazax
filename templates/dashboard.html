@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BazaX | Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #09090b;
+            --panel: #121216;
+            --panel-hover: #1a1a22;
+            --accent: #e6192a;
+            --accent-glow: rgba(230, 25, 42, 0.6);
+            --text: #ffffff;
+            --text-muted: #888899;
+            --border: #22222a;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+        
+        /* Сайдбар */
+        .sidebar { width: 260px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 2rem 1rem; position: fixed; height: 100vh; }
+        .logo-container { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; padding-left: 1rem; text-decoration: none; color: white; }
+        .logo-img { width: 35px; height: 35px; border-radius: 8px; background: url('/static/logo.png') center/cover; box-shadow: 0 0 15px var(--accent-glow); }
+        .logo-text { font-size: 1.5rem; font-weight: 900; }
+        .logo-text span { color: var(--accent); }
+
+        .menu-item { display: flex; align-items: center; padding: 12px 16px; color: var(--text-muted); text-decoration: none; border-radius: 8px; font-weight: 600; transition: 0.2s; cursor: pointer; margin-bottom: 5px; }
+        .menu-item:hover { background: var(--panel-hover); color: var(--text); }
+        .menu-item.active { background: rgba(230, 25, 42, 0.1); color: var(--accent); border-left: 3px solid var(--accent); }
+        .menu-icon { width: 20px; margin-right: 12px; text-align: center; }
+
+        /* Профиль внизу сайдбара */
+        .profile-bottom { margin-top: auto; padding: 1rem; background: var(--panel-hover); border-radius: 12px; display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--accent); }
+        .user-info h4 { font-size: 0.9rem; margin-bottom: 2px; }
+        .user-info span { font-size: 0.75rem; color: var(--accent); font-weight: 700; }
+
+        /* Контент */
+        .main-content { margin-left: 260px; flex: 1; padding: 3rem; }
+        .page { display: none; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Карточки */
+        .card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .card h2 { font-size: 1.5rem; margin-bottom: 1rem; color: var(--accent); }
+        .card p { color: var(--text-muted); line-height: 1.6; }
+
+        /* Ключи */
+        .key-box { background: #0d0d12; border: 1px dashed var(--accent); padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
+        .key-text { font-family: monospace; font-size: 1.1rem; color: var(--accent); letter-spacing: 1px; }
+        .btn-copy { background: var(--accent); border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 700; transition: 0.3s; }
+        .btn-copy:hover { background: #ff1f33; }
+
+        /* Облако */
+        .cloud-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: 700; }
+        .progress-bar { width: 100%; height: 16px; background: #0d0d12; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #e6192a, #ff4d5c); width: 0%; transition: width 1s ease; }
+
+        /* Заглушка (No Auth) */
+        .no-auth { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .no-auth h1 { font-size: 3rem; color: var(--accent); margin-bottom: 1rem; }
+        .btn-login { background: var(--accent); color: white; padding: 15px 40px; border-radius: 8px; text-decoration: none; font-weight: 900; font-size: 1.2rem; transition: 0.3s; margin-top: 20px; display: inline-block; }
+        .btn-login:hover { background: #ff1f33; box-shadow: 0 0 20px var(--accent-glow); }
+
+        /* Мобильная версия */
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; height: auto; position: relative; padding: 1rem; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 10px; border-right: none; border-bottom: 1px solid var(--border); }
+            .logo-container { margin-bottom: 0; width: 100%; justify-content: center; }
+            .menu-item { padding: 8px 12px; font-size: 0.8rem; margin: 0; }
+            .menu-icon { display: none; }
+            .profile-bottom { margin-top: 0; width: 100%; justify-content: center; }
+            .main-content { margin-left: 0; padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ЭКРАН БЕЗ АВТОРИЗАЦИИ -->
+    <div class="no-auth" id="noAuthScreen">
+        <h1>У тебя нет аккаунта!</h1>
+        <p style="color: var(--text-muted); font-size: 1.2rem;">Привяжи Discord и заходи в дашборд спокойно.</p>
+        <a href="/login" class="btn-login">Привязать Discord</a>
+    </div>
+
+    <!-- САЙДБАР -->
+    <div class="sidebar">
+        <a href="/" class="logo-container">
+            <div class="logo-img"></div>
+            <div class="logo-text">Baza<span>X</span></div>
+        </a>
+
+        <div class="menu-item active" onclick="switchPage('home', this)"><span class="menu-icon">🏠</span> Home</div>
+        <div class="menu-item" onclick="switchPage('keys', this)"><span class="menu-icon">🔑</span> Key</div>
+        <div class="menu-item" onclick="switchPage('plan', this)"><span class="menu-icon">💎</span> Plan</div>
+        <div class="menu-item" onclick="switchPage('cloud', this)"><span class="menu-icon">☁️</span> Cloud</div>
+        <div class="menu-item" onclick="switchPage('scripts', this)"><span class="menu-icon">📜</span> RBX-Scripts</div>
+        <div class="menu-item" onclick="switchPage('devices', this)"><span class="menu-icon">🖥️</span> Devices</div>
+        <div class="menu-item" onclick="switchPage('settings', this)"><span class="menu-icon">⚙️</span> Settings</div>
+
+        <div class="profile-bottom">
+            <img id="userAvatar" class="avatar" src="" alt="Avatar">
+            <div class="user-info">
+                <h4 id="userName">Loading...</h4>
+                <span id="userPlan">...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
+    <div class="main-content">
+        
+        <!-- HOME -->
+        <div id="page-home" class="page active">
+            <div class="card">
+                <h2>Добро пожаловать, <span id="welcomeName">User</span>!</h2>
+                <p>Это твоя панель управления BazaX. Здесь ты можешь управлять своими ключами, смотреть статус облака и настраивать инжектор.</p>
+            </div>
+            <div class="card">
+                <h2>Активность инжектора</h2>
+                <p>🟢 Статус: <b>Онлайн (Готов к работе)</b><br>⏱ Время в сети: <b>0 ч 0 мин</b><br>📉 Инъекций сделано: <b>0</b></p>
+            </div>
+        </div>
+
+        <!-- KEY -->
+        <div id="page-keys" class="page">
+            <div class="card">
+                <h2>Твои ключи (bazabystit)</h2>
+                <p>Ниже указаны активные ключи, привязанные к твоему аккаунту. Пока что добавить новые ключи нельзя.</p>
+                <div class="key-box">
+                    <div class="key-text" id="dashKey">BAZAX-XXXX</div>
+                    <button class="btn-copy" onclick="copyKey()">Copy</button>
+                </div>
+                <p style="margin-top: 15px; font-size: 0.9rem;">Время действия: <b>--:--</b></p>
+            </div>
+        </div>
+
+        <!-- PLAN -->
+        <div id="page-plan" class="page">
+            <div class="card">
+                <h2>Твой план: <span id="dashPlan" style="color: white;">FREE</span></h2>
+                <p>5 MB Cloud | Standard Tests | Internal Injector</p>
+                <button class="btn-copy" style="margin-top: 20px; opacity: 0.5; cursor: not-allowed;">Получить план (Скоро)</button>
+            </div>
+        </div>
+
+        <!-- CLOUD -->
+        <div id="page-cloud" class="page">
+            <div class="card">
+                <h2>Cloud Storage</h2>
+                <div class="cloud-header">
+                    <span>Использовано</span>
+                    <span id="cloudText">0 MB / 5 MB</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="cloudProgress" class="progress-fill"></div>
+                </div>
+                <p style="margin-top: 20px;">Твои сохраненные скрипты и конфиги появятся здесь.</p>
+            </div>
+        </div>
+
+        <!-- SCRIPTS -->
+        <div id="page-scripts" class="page">
+            <div class="card">
+                <h2>RBX-Scripts</h2>
+                <p>Здесь будут отображаться реальные скрипты, которые можно положить в облако.</p>
+            </div>
+        </div>
+
+        <!-- DEVICES -->
+        <div id="page-devices" class="page">
+            <div class="card">
+                <h2>Устройства</h2>
+                <p>Устройства, которые заходили в аккаунт:<br><br>ПК (Windows) — <span style="color: var(--accent);">Недавно</span></p>
+            </div>
+        </div>
+
+        <!-- SETTINGS -->
+        <div id="page-settings" class="page">
+            <div class="card">
+                <h2>Настройки GUI</h2>
+                <p>Настройки применяются одновременно для дашборда и инжектора.</p>
+                <label style="display: block; margin-top: 20px; color: var(--text-muted);">Тема оформления</label>
+                <select style="width: 100%; padding: 10px; background: #0d0d12; color: white; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;">
+                    <option>Obsidian (Черно-Красная)</option>
+                    <option>Light Mode</option>
+                </select>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Проверка авторизации
+        const userStr = localStorage.getItem('bazax_user');
+        if (!userStr) {
+            document.getElementById('noAuthScreen').style.display = 'flex';
+        } else {
+            const user = JSON.parse(userStr);
+            
+            // Заполняем данные
+            document.getElementById('userName').innerText = user.username;
+            document.getElementById('welcomeName').innerText = user.username;
+            document.getElementById('userAvatar').src = user.avatar;
+            document.getElementById('userPlan').innerText = user.plan;
+            document.getElementById('dashKey').innerText = user.key;
+            document.getElementById('dashPlan').innerText = user.plan;
+
+            // Облако
+            const limit = user.plan === 'BOOST' ? 100 : 5;
+            const used = 0;
+            const percent = (used / limit) * 100;
+            document.getElementById('cloudText').innerText = `${used} MB / ${limit} MB`;
+            setTimeout(() => { document.getElementById('cloudProgress').style.width = percent + '%'; }, 100);
+        }
+
+        // Переключение вкладок
+        function switchPage(pageId, element) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            element.classList.add('active');
+        }
+
+        function copyKey() {
+            const key = document.getElementById('dashKey').innerText;
+            navigator.clipboard.writeText(key);
+            alert('Ключ скопирован!');
+        }
+    </script>
+</body>
+                  </html>
