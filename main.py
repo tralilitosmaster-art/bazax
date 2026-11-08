@@ -47,7 +47,6 @@ def dashboard():
 
 @app.route('/logout')
 def logout():
-    # JS на странице дашборда сам очистит localStorage при переходе по этой ссылке
     return redirect('/')
 
 # --- OAUTH2 АВТОРИЗАЦИЯ ---
@@ -83,7 +82,6 @@ def callback():
     username = user_data['username']
     avatar_hash = user_data.get('avatar')
 
-    # Проверяем, есть ли аккаунт в БД
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("SELECT plan, key FROM users WHERE discord_id = ?", (user_id,))
@@ -99,15 +97,12 @@ def callback():
         conn.commit()
     conn.close()
 
-    # Выдаем роль на сервере
     if GUILD_ID and VERIFIED_ROLE_ID:
         bot_headers = {"Authorization": f"Bot {TOKEN}", "Content-Type": "application/json"}
         requests.put(f"https://discord.com/api/guilds/{GUILD_ID}/members/{user_id}/roles/{VERIFIED_ROLE_ID}", headers=bot_headers)
 
-    # Ссылка на аватарку
     avatar_url = f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_hash}.png" if avatar_hash else "https://cdn.discordapp.com/embed/avatars/0.png"
 
-    # HTML-перенаправление с сохранением данных в localStorage
     return f"""
     <html>
         <head><meta charset="UTF-8"><title>Redirecting...</title></head>
@@ -206,9 +201,9 @@ class AccountView(View):
 
     @discord.ui.button(label="Login / Create", style=discord.ButtonStyle.success, custom_id="btn_login")
     async def btn_login(self, interaction: discord.Interaction, button: Button):
-        # ВАЖНО: Замени ссылку на свой реальный домен на Render
+        # Ссылка на твой Render
         await interaction.response.send_message(
-            "🔗 **Авторизация BazaX**\nНажми на ссылку ниже, чтобы войти через Discord и получить ключ:\n\nhttps://bazax-manage.onrender.com/login", 
+            "🔗 **Авторизация BazaX**\nНажми на ссылку ниже, чтобы войти через Discord и получить ключ:\n\nhttps://bazax.onrender.com/login", 
             ephemeral=True
         )
 
