@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BazaX | Internal Executor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #09090b;
+            --panel: #121216;
+            --panel-hover: #1a1a22;
+            --accent: #e6192a;
+            --accent-glow: rgba(230, 25, 42, 0.6);
+            --text: #ffffff;
+            --text-muted: #888899;
+            --border: #22222a;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Montserrat', sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Фоновое свечение (адаптивное) */
+        .glow {
+            position: absolute;
+            top: -10vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100vw;
+            max-width: 800px;
+            height: 50vh;
+            background: radial-gradient(circle, rgba(230, 25, 42, 0.15) 0%, rgba(0,0,0,0) 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Навигация */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5vw;
+            background: rgba(18, 18, 22, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .logo-img {
+            width: 35px;
+            height: 35px;
+            background: var(--accent);
+            border-radius: 8px;
+            box-shadow: 0 0 15px var(--accent-glow);
+            /* Если есть картинка: */
+            /* background: url('/static/logo.png') no-repeat center center; */
+            /* background-size: cover; */
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+
+        .logo-text span { color: var(--accent); }
+
+        /* Мобильное меню */
+        .menu-toggle {
+            display: none;
+            font-size: 2rem;
+            color: var(--text);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-tab {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            padding: 8px 0;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-tab:hover, .nav-tab.active {
+            color: var(--text);
+        }
+
+        .nav-tab.active {
+            border-bottom: 2px solid var(--accent);
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* Контент */
+        .content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 4vh 5vw;
+            position: relative;
+        }
+
+        .page {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Вкладка: Скачать */
+        .hero {
+            text-align: center;
+        }
+
+        /* Fluid Typography - текст подстраивается под экран */
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 900;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .hero h1 span { 
+            color: var(--accent); 
+            text-shadow: 0 0 25px var(--accent-glow); 
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            max-width: 700px;
+            margin: 0 auto 3rem auto;
+            line-height: 1.6;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--accent);
+            color: white;
+            padding: 16px 40px;
+            border-radius: 8px;
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            font-weight: 700;
+            text-decoration: none;
+            transition: 0.3s;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 5px 20px var(--accent-glow);
+            width: max-content;
+            max-width: 100%;
+        }
+
+        .btn:hover {
+            background: #ff1f33;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+
+        /* Вкладка: Дашборд */
+        .dashboard-box {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 4rem 2rem;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .dashboard-box h2 {
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            margin-bottom: 1rem;
+        }
+
+        .dashboard-box p {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-discord {
+            background: #5865F2;
+            box-shadow: 0 5px 20px rgba(88, 101, 242, 0.4);
+        }
+
+        .btn-discord:hover {
+            background: #4752c4;
+            box-shadow: 0 8px 30px rgba(88, 101, 242, 0.6);
+        }
+
+        /* Вкладка: О BazaX (Сетка) */
+        .about-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: 0.3s;
+        }
+
+        .feature-card:hover {
+            background: var(--panel-hover);
+            border-color: var(--accent);
+            transform: translateY(-5px);
+        }
+
+        .feature-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
+            color: var(--accent);
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Футер */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border);
+            margin-top: auto;
+        }
+
+        /* =========================================
+           МЕДИА-ЗАПРОСЫ (Адаптация под телефоны)
+           ========================================= */
+        @media (max-width: 768px) {
+            nav {
+                padding: 1rem 5vw;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .nav-tabs {
+                display: none; /* Скрываем обычное меню */
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: var(--panel);
+                flex-direction: column;
+                padding: 1rem;
+                border-bottom: 1px solid var(--border);
+                gap: 1rem;
+            }
+
+            .nav-tabs.open {
+                display: flex; /* Показываем при клике */
+            }
+
+            .nav-tab {
+                padding: 1rem;
+                text-align: center;
+                border-bottom: none;
+            }
+
+            .nav-tab.active {
+                background: var(--panel-hover);
+                border-radius: 8px;
+                border-bottom: none;
+                color: var(--accent);
+            }
+
+            .dashboard-box {
+                padding: 3rem 1.5rem;
+            }
+            
+            .content {
+                padding: 2rem 5vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="glow"></div>
+
+    <nav>
+        <div class="logo-container" onclick="switchTab('download', null)">
+            <div class="logo-img"></div>
+            <div class="logo-text">Baza<span>X</span></div>
+        </div>
+        
+        <!-- Бургер-меню для телефонов -->
+        <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+
+        <div class="nav-tabs" id="navTabs">
+            <div class="nav-tab active" onclick="switchTab('download', this)">Скачать</div>
+            <div class="nav-tab" onclick="switchTab('dashboard', this)">Дашборд</div>
+            <div class="nav-tab" onclick="switchTab('about', this)">О BazaX</div>
+        </div>
+    </nav>
+
+    <div class="content">
+        <!-- СТРАНИЦА: СКАЧАТЬ -->
+        <div id="page-download" class="page active">
+            <div class="hero">
+                <h1>Baza<span>X</span> Executor</h1>
+                <p>Самый продвинутый внутренний исполнитель Luau с обходом Hyperion (Byfron). Основан на чистом C++ и современных технологиях.</p>
+                <a href="/static/BazaX.zip" class="btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Скачать BazaX
+                </a>
+            </div>
+        </div>
+
+        <!-- СТРАНИЦА: ДАШБОРД -->
+        <div id="page-dashboard" class="page">
+            <div class="dashboard-box">
+                <h2>Личный Кабинет</h2>
+                <p>Авторизуйся через Discord, чтобы получить свой ключ доступа, отслеживать лимиты облака и привязанные устройства.</p>
+                <a href="/login" class="btn btn-discord">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
+                    Login with Discord
+                </a>
+            </div>
+        </div>
+
+        <!-- СТРАНИЦА: О BAZAX -->
+        <div id="page-about" class="page">
+            <div class="about-grid">
+                <div class="feature-card">
+                    <h3>Undetected</h3>
+                    <p>Используем Manual Mapping и RtlCreateUserThread для обхода защиты Hyperion (Byfron). Твой аккаунт в безопасности.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Luau Bridge</h3>
+                    <p>Прямой перехват функции lua_resume. Мгновенное выполнение скриптов без лагов и крашей.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Cloud Storage</h3>
+                    <p>Твои скрипты и конфиги сохраняются в облаке. Забудь про вечное копирование файлов туда-сюда.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Discord Auth</h3>
+                    <p>Полная интеграция с Discord. Получай ключ, смотри план и привязывай устройства прямо в нашем боте.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2026 BazaX Development Team. This software is for educational purposes only.
+    </footer>
+
+    <script>
+        // Переключение вкладок
+        function switchTab(tabId, element) {
+            // Скрываем все страницы
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            // Убираем активный класс со всех вкладок
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Показываем нужную страницу
+            document.getElementById(`page-${tabId}`).classList.add('active');
+            
+            // Подсвечиваем нужную вкладку
+            if (element) {
+                element.classList.add('active');
+            } else {
+                // Если кликнули по логотипу, подсвечиваем первую вкладку
+                document.querySelector('.nav-tab').classList.add('active');
+            }
+            
+            // Закрываем мобильное меню после клика
+            document.getElementById('navTabs').classList.remove('open');
+        }
+
+        // Открытие/закрытие мобильного меню
+        function toggleMenu() {
+            const tabs = document.getElementById('navTabs');
+            tabs.classList.toggle('open');
+        }
+    </script>
+</body>
+  </html>
