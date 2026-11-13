@@ -47,12 +47,20 @@
         .feature-box h3 { color: var(--accent); font-size: 1.1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px; }
         .feature-box p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; }
 
+        /* Модальные окна */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; opacity: 0; transition: opacity 0.3s; }
         .modal-overlay.active { display: flex; opacity: 1; }
-        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; max-width: 500px; width: 90%; text-align: center; transform: translateY(20px); transition: transform 0.3s; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; max-width: 450px; width: 90%; text-align: center; transform: translateY(20px); transition: transform 0.3s; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
         .modal-overlay.active .modal { transform: translateY(0); }
         .modal h2 { font-size: 1.5rem; margin-bottom: 1rem; color: white; }
-        .btn-modal { padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.3s; text-decoration: none; border: none; }
+        .modal p { color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.5; }
+        
+        .modal-buttons { display: flex; gap: 1rem; justify-content: center; }
+        .btn-modal { padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.3s; text-decoration: none; border: none; flex: 1; }
+        .btn-yes { background: #5865F2; color: white; box-shadow: 0 4px 15px rgba(88, 101, 242, 0.4); }
+        .btn-yes:hover { background: #4752c4; }
+        .btn-no { background: var(--accent); color: white; box-shadow: 0 4px 15px var(--accent-glow); }
+        .btn-no:hover { background: #ff1f33; }
         .btn-close { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
         .btn-close:hover { background: var(--panel-hover); color: white; }
 
@@ -65,6 +73,7 @@
             .nav-tab { padding: 1rem; text-align: center; border-bottom: none; }
             .nav-tab.active { background: var(--panel-hover); border-radius: 8px; color: var(--accent); }
             .lang-switch { justify-content: center; padding-bottom: 1rem; }
+            .modal-buttons { flex-direction: column; }
         }
     </style>
 </head>
@@ -95,7 +104,8 @@
             <div class="hero">
                 <h1 data-i18n="hero_title">BazaX Executor</h1>
                 <p data-i18n="hero_desc">Самый продвинутый внутренний исполнитель Luau с обходом Hyperion (Byfron).</p>
-                <button onclick="openDownloadModal()" class="btn">
+                <!-- Вызывает окно с вопросом про Discord -->
+                <button onclick="openDiscordModal()" class="btn">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                     <span data-i18n="btn_download">Скачать BazaX</span>
                 </button>
@@ -122,7 +132,19 @@
         &copy; 2026 BazaX Development Team. This software is for educational purposes only.
     </footer>
 
-    <!-- МОДАЛЬНОЕ ОКНО ВЫБОРА ВЕРСИИ -->
+    <!-- МОДАЛЬНОЕ ОКНО 1: ВОПРОС ПРО DISCORD -->
+    <div class="modal-overlay" id="discordModal">
+        <div class="modal">
+            <h2 data-i18n="disc_modal_title">Спасибо за установку!</h2>
+            <p data-i18n="disc_modal_desc">Можете пожалуйста вступить в наш Discord сервер? Там ты найдешь скрипты, поддержку и обновления.</p>
+            <div class="modal-buttons">
+                <a href="https://discord.gg/V8bcctayp" target="_blank" class="btn-modal btn-yes" data-i18n="disc_modal_yes">Да</a>
+                <button onclick="openVersionsModal()" class="btn-modal btn-no" data-i18n="disc_modal_no">Не</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО 2: ВЫБОР ВЕРСИИ -->
     <div class="modal-overlay" id="downloadModal">
         <div class="modal">
             <h2 data-i18n="modal_title">Выберите версию BazaX</h2>
@@ -139,6 +161,8 @@
                 nav_download: "Скачать", nav_dashboard: "Дашборд", nav_about: "О BazaX",
                 hero_title: "BazaX Executor", hero_desc: "Самый продвинутый внутренний исполнитель Luau с обходом Hyperion (Byfron).",
                 btn_download: "Скачать BazaX", modal_title: "Выберите версию BazaX", modal_close: "Закрыть",
+                disc_modal_title: "Спасибо за установку!", disc_modal_desc: "Можете пожалуйста вступить в наш Discord сервер? Там ты найдешь скрипты, поддержку и обновления.",
+                disc_modal_yes: "Да", disc_modal_no: "Не",
                 f1_t: "🛡️ Безопасность", f1_d: "Ручной маппинг и обход CFG.",
                 f2_t: "⚡ Скорость", f2_d: "Прямой перехват lua_resume.",
                 f3_t: "☁️ Облако", f3_d: "Синхронизация скриптов.",
@@ -152,6 +176,8 @@
                 nav_download: "Download", nav_dashboard: "Dashboard", nav_about: "About",
                 hero_title: "BazaX Executor", hero_desc: "The most advanced internal Luau executor with Hyperion bypass.",
                 btn_download: "Download BazaX", modal_title: "Select BazaX Version", modal_close: "Close",
+                disc_modal_title: "Thanks for installing!", disc_modal_desc: "Could you please join our Discord server? You'll find scripts, support, and updates there.",
+                disc_modal_yes: "Yes", disc_modal_no: "No",
                 f1_t: "🛡️ Security", f1_d: "Manual mapping and CFG bypass.",
                 f2_t: "⚡ Speed", f2_d: "Direct lua_resume hooking.",
                 f3_t: "☁️ Cloud", f3_d: "Sync scripts and configs.",
@@ -185,17 +211,23 @@
 
         function toggleMenu() { document.getElementById('navRight').classList.toggle('open'); }
 
-        // Модальное окно
-        function openDownloadModal() {
+        // Окно 1: Дискорд
+        function openDiscordModal() {
+            document.getElementById('discordModal').classList.add('active');
+        }
+
+        // Окно 2: Версии
+        function openVersionsModal() {
+            document.getElementById('discordModal').classList.remove('active');
             document.getElementById('downloadModal').classList.add('active');
             const list = document.getElementById('release-list');
-            list.innerHTML = '<p style="color: var(--text-muted);">Loading...</p>';
+            list.innerHTML = '<p style="color: var(--text-muted);">Загрузка версий...</p>';
 
             fetch('/api/releases')
             .then(res => res.json())
             .then(data => {
                 if(data.length === 0) {
-                    list.innerHTML = '<p style="color: var(--text-muted);">No versions available yet.</p>';
+                    list.innerHTML = '<p style="color: var(--text-muted);">Пока нет доступных версий.</p>';
                     return;
                 }
                 list.innerHTML = '';
@@ -215,9 +247,11 @@
             });
         }
 
-        function closeModal() { document.getElementById('downloadModal').classList.remove('active'); }
+        function closeModal() {
+            document.getElementById('downloadModal').classList.remove('active');
+        }
     </script>
 </body>
-    </html>
+</html>
 
 
