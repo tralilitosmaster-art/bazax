@@ -40,11 +40,8 @@
         .btn-copy { background: var(--accent); border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 700; transition: 0.3s; }
         .btn-copy:hover { background: #ff1f33; }
 
-        /* Скрипты */
         .script-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid var(--border); }
         .script-item:last-child { border-bottom: none; }
-        .script-name { font-weight: 700; font-size: 1.1rem; }
-        .script-desc { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
         .btn-get { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 6px 16px; border-radius: 6px; text-decoration: none; font-weight: 700; transition: 0.3s; cursor: pointer; }
         .btn-get:hover { background: var(--accent); color: white; }
 
@@ -56,14 +53,21 @@
         .no-auth h1 { font-size: 3rem; color: var(--accent); margin-bottom: 1rem; }
         .btn-login { background: var(--accent); color: white; padding: 15px 40px; border-radius: 8px; text-decoration: none; font-weight: 900; font-size: 1.2rem; transition: 0.3s; margin-top: 20px; display: inline-block; }
         
+        input, textarea { width: 100%; padding: 10px; margin-bottom: 10px; background: #0d0d12; color: white; border: 1px solid var(--border); border-radius: 6px; font-family: 'Montserrat'; }
+        input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+
         @media (max-width: 768px) {
             .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; flex-wrap: wrap; justify-content: center; border-right: none; border-bottom: 1px solid var(--border); padding: 1rem; }
             .logo-container { display: none; }
             .main-content { margin-left: 0; padding: 1.5rem; }
+            .menu-item { padding: 8px 12px; font-size: 0.8rem; margin: 0; }
+            .menu-icon { display: none; }
+            .profile-bottom { margin-top: 0; width: 100%; justify-content: center; }
         }
     </style>
 </head>
 <body>
+
     <div class="no-auth" id="noAuthScreen">
         <h1>У тебя нет аккаунта!</h1>
         <p style="color: var(--text-muted); font-size: 1.2rem;">Привяжи дискорд и заходи в дашборд спокойно.</p>
@@ -81,6 +85,7 @@
         <div class="menu-item" onclick="switchPage('cloud', this)"><span class="menu-icon">☁️</span> Cloud</div>
         <div class="menu-item" onclick="switchPage('scripts', this)"><span class="menu-icon">📜</span> RBX-Scripts</div>
         <div class="menu-item" onclick="switchPage('devices', this)"><span class="menu-icon">🖥️</span> Devices</div>
+        <div class="menu-item" onclick="switchPage('admin', this)"><span class="menu-icon">👑</span> Admin</div>
 
         <div class="profile-bottom">
             <img id="userAvatar" class="avatar" src="" alt="Avatar">
@@ -92,7 +97,6 @@
     </div>
 
     <div class="main-content">
-        <!-- HOME -->
         <div id="page-home" class="page active">
             <div class="card">
                 <h2>Добро пожаловать, <span id="welcomeName">User</span>!</h2>
@@ -100,7 +104,6 @@
             </div>
         </div>
 
-        <!-- KEY -->
         <div id="page-keys" class="page">
             <div class="card">
                 <h2>Твои ключи</h2>
@@ -109,11 +112,9 @@
                     <div class="key-text" id="dashKey">...</div>
                     <button class="btn-copy" onclick="copyKey()">Copy</button>
                 </div>
-                <p style="margin-top: 15px; font-size: 0.9rem;">Время действия: <b>--:--</b></p>
             </div>
         </div>
 
-        <!-- PLAN -->
         <div id="page-plan" class="page">
             <div class="card">
                 <h2>Твой план: <span id="dashPlan" style="color: white;">FREE</span></h2>
@@ -121,7 +122,6 @@
             </div>
         </div>
 
-        <!-- CLOUD -->
         <div id="page-cloud" class="page">
             <div class="card">
                 <h2>Cloud Storage</h2>
@@ -136,39 +136,43 @@
             </div>
         </div>
 
-        <!-- SCRIPTS -->
         <div id="page-scripts" class="page">
             <div class="card">
                 <h2>RBX-Scripts (Публичные)</h2>
                 <div class="script-item">
-                    <div>
-                        <div class="script-name">Blox Fruits Autofarm</div>
-                        <div class="script-desc">Лучший автофарм для Blox Fruits (by W-Azure)</div>
-                    </div>
+                    <div><div class="script-name">Blox Fruits Autofarm</div><div class="script-desc">Автофарм для Blox Fruits</div></div>
                     <a href="https://raw.githubusercontent.com/W-Azure/Blox-Fruits-Script/main/main.lua" target="_blank" class="btn-get">Get Script</a>
                 </div>
                 <div class="script-item">
-                    <div>
-                        <div class="script-name">Doors ESP</div>
-                        <div class="script-desc">ESP для дверей и монстров (by BazaX)</div>
-                    </div>
+                    <div><div class="script-name">Doors ESP</div><div class="script-desc">ESP для монстров</div></div>
                     <a href="#" target="_blank" class="btn-get">Get Script</a>
-                </div>
-                <div class="script-item">
-                    <div>
-                        <div class="script-name">Universal ESP</div>
-                        <div class="script-desc">Универсальный ESP для большинства игр</div>
-                    </div>
-                    <a href="https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source" target="_blank" class="btn-get">Get Script</a>
                 </div>
             </div>
         </div>
 
-        <!-- DEVICES -->
         <div id="page-devices" class="page">
             <div class="card">
                 <h2>Устройства</h2>
                 <p id="dashDevices">Загрузка...</p>
+            </div>
+        </div>
+
+        <!-- ADMIN -->
+        <div id="page-admin" class="page">
+            <div class="card">
+                <h2>Admin Panel: Add Release</h2>
+                <p style="margin-bottom: 20px;">Только ID `1465756682566242325` может добавлять версии.</p>
+                
+                <input type="text" id="rel_version" placeholder="Версия (например, 1.1.0)">
+                <input type="text" id="rel_file" placeholder="Имя файла (например, BazaX_v1.1.0.zip)">
+                <textarea id="rel_changelog" placeholder="Что нового? (Changelog)" style="height: 80px;"></textarea>
+                
+                <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; color: var(--text-muted);">
+                    <input type="checkbox" id="rel_beta" style="width: auto; margin: 0;"> Beta Version?
+                </label>
+                
+                <button onclick="addRelease()" class="btn-copy" style="width: 100%;">Опубликовать релиз</button>
+                <p id="admin_status" style="margin-top: 10px; font-size: 0.9rem;"></p>
             </div>
         </div>
     </div>
@@ -185,12 +189,10 @@
             document.getElementById('welcomeName').innerText = user.username;
             document.getElementById('userAvatar').src = user.avatar;
             
-            // Запрашиваем РЕАЛЬНЫЕ данные из базы
             fetch(`/api/dashboard_data?id=${userId}`)
                 .then(res => res.json())
                 .then(data => {
                     if(data.error) return;
-                    
                     document.getElementById('userPlan').innerText = data.plan;
                     document.getElementById('dashPlan').innerText = data.plan;
                     document.getElementById('dashKey').innerText = data.key;
@@ -200,10 +202,7 @@
                     const used = data.used_cloud;
                     document.getElementById('cloudText').innerText = `${used} MB / ${limit} MB`;
                     document.getElementById('cloudProgress').style.width = ((used/limit)*100) + '%';
-                    
-                    document.getElementById('planDesc').innerText = data.plan === 'FREE' 
-                        ? "5 MB Cloud | Internal | ❌ Beta Features" 
-                        : "100 MB Cloud | Internal | ✅ Beta Features";
+                    document.getElementById('planDesc').innerText = data.plan === 'FREE' ? "5 MB Cloud | Internal | ❌ Beta" : "100 MB Cloud | Internal | ✅ Beta";
                 });
         }
 
@@ -217,6 +216,33 @@
         function copyKey() {
             navigator.clipboard.writeText(document.getElementById('dashKey').innerText);
             alert('Ключ скопирован!');
+        }
+
+        function addRelease() {
+            const adminId = localStorage.getItem('bazax_id');
+            const version = document.getElementById('rel_version').value;
+            const filename = document.getElementById('rel_file').value;
+            const changelog = document.getElementById('rel_changelog').value;
+            const isBeta = document.getElementById('rel_beta').checked;
+
+            if(!version || !filename) { alert("Заполни версию и имя файла!"); return; }
+
+            fetch('/api/add_release', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ admin_id: adminId, version, filename, changelog, is_beta: isBeta })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const status = document.getElementById('admin_status');
+                if(data.status === 'success') {
+                    status.style.color = '#00ff00';
+                    status.innerText = 'Релиз успешно добавлен!';
+                } else {
+                    status.style.color = '#e6192a';
+                    status.innerText = 'Ошибка: ' + data.message;
+                }
+            });
         }
     </script>
 </body>
