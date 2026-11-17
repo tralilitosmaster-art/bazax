@@ -27,6 +27,23 @@ ANTIRAID_LOG_ID = int(os.getenv("ANTIRAID_LOG_ID", 0))
 DB_PATH = "/data/bazax_users.db" if os.path.exists("/data") else "bazax_users.db"
 
 # ==========================================
+# ЖИВАЯ СТАТИСТИКА (В ПАМЯТИ)
+# ==========================================
+# Словари для отслеживания активности (user_id : timestamp)
+ACTIVE_SITE_USERS = {}    # Те, кто сидят на сайте/дашборде
+ACTIVE_INJECTOR_USERS = {} # Те, у кого запущен инжектор
+
+def clean_old_sessions():
+    now = time.time()
+    # Чистим тех, кто не проявлял активность больше 2 минут
+    for uid in list(ACTIVE_SITE_USERS.keys()):
+        if now - ACTIVE_SITE_USERS[uid] > 120:
+            del ACTIVE_SITE_USERS[uid]
+    for uid in list(ACTIVE_INJECTOR_USERS.keys()):
+        if now - ACTIVE_INJECTOR_USERS[uid] > 120:
+            del ACTIVE_INJECTOR_USERS[uid]
+
+# ==========================================
 # FLASK СЕРВЕР
 # ==========================================
 app = Flask(__name__)
@@ -100,6 +117,38 @@ def callback():
     </body></html>
     """
 
+# --- API СТАТИСТИКИ ---
+@app.route('/api/stats', methods=['GET'])
+def get_stats():
+    clean_old_sessions()
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT COUNT(*) FROM users")
+    total_users = c.fetchone()[0]
+    conn.close()
+    
+    return jsonify({
+        "playing": len(ACTIVE_INJECTOR_USERS), 
+        "online": len(ACTIVE_SITE_USERS), 
+        "total": total_users
+    })
+
+@app.route('/api/ping', methods=['POST'])
+def ping_site():
+    data = request.json
+    user_id = data.get('id')
+    if user_id:
+        ACTIVE_SITE_USERS[str(user_id)] = time.time()
+    return jsonify({"status": "ok"})
+
+@app.route('/api/ping_injector', methods=['POST'])
+def ping_injector():
+    data = request.json
+    user_id = data.get('id')
+    if user_id:
+        ACTIVE_INJECTOR_USERS[str(user_id)] = time.time()
+    return jsonify({"status": "ok"})
+
 # --- СИСТЕМА ВЕРСИЙ ---
 @app.route('/api/releases', methods=['GET'])
 def get_releases():
@@ -135,23 +184,6 @@ def dashboard_data():
     conn.close()
     if not row: return jsonify({"error": "User not found"}), 404
     return jsonify({"plan": row[0], "key": row[1], "cloud_limit": row[2], "devices": row[3] if row[3] else "Нет устройств", "used_cloud": 0})
-
-# --- API ДЛЯ ИНЖЕКТОРА И СТАТИСТИКИ ---
-@app.route('/api/stats', methods=['GET'])
-def get_stats():
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    # Считаем общее количество зарегистрированных пользователей
-    c.execute("SELECT COUNT(*) FROM users")
-    total_users = c.fetchone()[0]
-    conn.close()
-    
-    # Пока что Playing и Online равны нулю. Позже мы сделаем их реальными.
-    return jsonify({
-        "playing": 0, 
-        "online": 0, 
-        "total": total_users
-    })
 
 @app.route('/api/get_info', methods=['GET'])
 def get_info():
