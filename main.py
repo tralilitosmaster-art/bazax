@@ -136,6 +136,23 @@ def dashboard_data():
     if not row: return jsonify({"error": "User not found"}), 404
     return jsonify({"plan": row[0], "key": row[1], "cloud_limit": row[2], "devices": row[3] if row[3] else "Нет устройств", "used_cloud": 0})
 
+# --- API ДЛЯ ИНЖЕКТОРА И СТАТИСТИКИ ---
+@app.route('/api/stats', methods=['GET'])
+def get_stats():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    # Считаем общее количество зарегистрированных пользователей
+    c.execute("SELECT COUNT(*) FROM users")
+    total_users = c.fetchone()[0]
+    conn.close()
+    
+    # Пока что Playing и Online равны нулю. Позже мы сделаем их реальными.
+    return jsonify({
+        "playing": 0, 
+        "online": 0, 
+        "total": total_users
+    })
+
 @app.route('/api/get_info', methods=['GET'])
 def get_info():
     key = request.args.get('key')
